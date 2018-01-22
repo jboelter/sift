@@ -35,6 +35,7 @@ import (
 	"github.com/svent/go-nbreader"
 	"github.com/svent/sift/gitignore"
 	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/text/encoding/unicode"
 )
 
 const (
@@ -382,7 +383,7 @@ func checkShebang(regex *regexp.Regexp, filepath string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	b, err := bufio.NewReader(f).ReadBytes('\n')
+	b, err := bufio.NewReader(f).ReadBytes('\n') // BUGBUG UTF16?
 	return regex.Match(b), nil
 }
 
@@ -431,6 +432,11 @@ func processFileTargets() {
 			reader = infile
 		}
 
+		if options.UTF16 {
+			// experimental feature
+			reader = unicode.UTF16(unicode.LittleEndian, unicode.UseBOM).NewDecoder().Reader(reader)
+		}
+
 		if options.InvertMatch {
 			err = processReaderInvertMatch(reader, matchRegexes, filepath)
 		} else {
@@ -438,7 +444,7 @@ func processFileTargets() {
 		}
 		if err != nil {
 			if err == errLineTooLong {
-				global.totalLineLengthErrors += 1
+				global.totalLineLengthErrors++
 				if options.ErrShowLineLength {
 					errmsg := fmt.Sprintf("file contains very long lines (>= %d bytes). See options --blocksize and --err-skip-line-length.", InputBlockSize)
 					errorLogger.Printf("cannot process data from file '%s': %s\n", filepath, errmsg)

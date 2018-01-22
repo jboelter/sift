@@ -543,6 +543,10 @@ func getBeforeContextFromFile(target string, offset int64, start int) *string {
 	infile.Seek(seekPosition, 0)
 	reader := bufio.NewReader(infile)
 	buffer := make([]byte, count)
+	if options.UTF16 {
+		// BUGBUG UTF16
+		panic("utf16 support for --preceded-by not implemented when > buffer")
+	}
 	reader.Read(buffer)
 
 	lineStart := len(buffer)
@@ -576,6 +580,10 @@ func getAfterContextFromFile(target string, offset int64, end int) *string {
 	infile.Seek(seekPosition, 0)
 	reader := bufio.NewReader(infile)
 	buffer := make([]byte, InputBlockSize)
+	if options.UTF16 {
+		//BUGBUG UTF16
+		panic("utf16 support for --followed-by not implemented when > buffer")
+	}
 	length, _ := reader.Read(buffer)
 
 	lineEnd := 0
